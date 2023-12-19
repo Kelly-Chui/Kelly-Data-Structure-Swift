@@ -44,6 +44,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A2499ADB2B31B34000B853A0 /* Data Structures */ = {
+			isa = PBXGroup;
+			children = (
+				A27317C02B2F393800C06B5D /* Heap.swift */,
+				A27317C22B2F5A1A00C06B5D /* Queue.swift */,
+				A27317C42B2F5A2400C06B5D /* LinkedList.swift */,
+			);
+			path = "Data Structures";
+			sourceTree = "<group>";
+		};
 		A27317AD2B2F382700C06B5D = {
 			isa = PBXGroup;
 			children = (
@@ -64,9 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				A27317B92B2F382700C06B5D /* main.swift */,
-				A27317C02B2F393800C06B5D /* Heap.swift */,
-				A27317C22B2F5A1A00C06B5D /* Queue.swift */,
-				A27317C42B2F5A2400C06B5D /* LinkedList.swift */,
+				A2499ADB2B31B34000B853A0 /* Data Structures */,
 			);
 			path = "Swift Algorithm";
 			sourceTree = "<group>";
