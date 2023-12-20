@@ -22,17 +22,19 @@ class LinkedListElement<Value> {
 struct LinkedList<Value> {
     private var head: LinkedListElement<Value>?
     private var tail: LinkedListElement<Value>?
+    
+    var first: Value? { head?.value }
+    var last: Value? { tail?.value }
     var isEmpty: Bool { head == nil }
     var count: Int = 0
     
-    // MARK: pushing methods
-    
-    // Method used to add an element at the beginning of a list
-    mutating func pushHead(_ value: Value) {
-        let addedElement = LinkedListElement(postElement: self.head, value: value)
-        head?.preElement = addedElement
-        head = addedElement
-        count += 1
+    private func find(index: Int) -> LinkedListElement<Value>? {
+        var current = head
+        for _ in stride(from: 0, to: index, by: 1) {
+            current = current?.postElement
+        }
+        return current
+        // TODO: Reversed is also required
     }
     
     // Method used to add an element at the end of a list
@@ -40,6 +42,7 @@ struct LinkedList<Value> {
         let addedElement = LinkedListElement(preElement: self.tail, value: value)
         if count == 0 {
             head = addedElement
+            tail = addedElement
         }
         tail?.postElement = addedElement
         tail = addedElement
@@ -51,85 +54,105 @@ struct LinkedList<Value> {
         guard index >= 0, index <= count else {
             fatalError("Index out of bounds")
         }
-        if index == 0 {
-            pushHead(value)
-            return
-        }
         if index == count {
             push(value)
             return
         }
-        var current = head
-        for _ in 0..<index - 1 {
-            current = current?.postElement
-        }
+        let current = find(index: index)
         let addedElement = LinkedListElement(preElement: current?.preElement, postElement: current, value: value)
+        if index == 0 {
+            head = addedElement
+        }
+        if count == 0 {
+            head = addedElement // If count == 0 is true, then index == 0 is also true, so this line is not actually necessary.
+            tail = addedElement
+        }
         current?.preElement?.postElement = addedElement
         current?.preElement = addedElement
         count += 1
     }
     
-    // MARK: popping methods
+    @discardableResult
     mutating func popFirst() -> Value? {
         guard head != nil else {
             return nil
         }
-        let firstValue = head?.value
+        var headElement = head
+        let headValue = headElement?.value
         head = head?.postElement
         head?.preElement = nil
         count -= 1
-        return firstValue
+        headElement = nil
+        return headValue
     }
     
+    @discardableResult
     mutating func popLast() -> Value? {
         guard tail != nil else {
             return nil
         }
-        let lastValue = tail?.value
+        var tailElement = tail
+        let tailValue = tailElement?.value
         tail = tail?.preElement
         tail?.postElement = nil
         count -= 1
-        return lastValue
+        tailElement = nil
+        return tailValue
     }
     
+    @discardableResult
     mutating func pop(at index: Int) -> Value? {
         guard index >= 0, index < count else {
             fatalError("Index out of bounds")
         }
-
+        
         if index == 0 {
             return popFirst()
-        } else if index == count - 1 {
-            return popLast()
-        } else {
-            var current = head
-            for _ in 0..<index - 1 {
-                current = current?.postElement
-            }
-            let value = current?.value
-            let preElement = current?.preElement
-            let postElement = current?.postElement
-
-            preElement?.postElement = postElement
-            postElement?.preElement = preElement
-
-            count -= 1
-            return value
         }
+        if index == count - 1 {
+            return popLast()
+        }
+        var current = head
+        current = find(index: index)
+        let value = current?.value
+        
+        let preElement = current?.preElement
+        let postElement = current?.postElement
+        preElement?.postElement = postElement
+        postElement?.preElement = preElement
+        
+        current = nil
+        count -= 1
+        return value
     }
     
-    // MARK: subscripts
-    
-    // Accessing index using subscripts
+    // Accessing values using subscripts
     subscript(index: Int) -> Value? {
         guard index >= 0, index < count else {
             fatalError("Index out of bounds")
         }
         
         var current = head
-        for _ in 0..<index {
-            current = current?.postElement
-        }
+        current = find(index: index)
         return current?.value
+    }
+}
+
+//MARK: - Conform Sequence Protocol
+
+extension LinkedList: Sequence {
+    struct LinkedListIterator: IteratorProtocol {
+        var current: LinkedListElement<Value>?
+
+        mutating func next() -> Value? {
+            defer {
+                current = current?.postElement
+            }
+            return current?.value
+        }
+    }
+
+    func makeIterator() -> LinkedListIterator {
+        return LinkedListIterator(current: head)
     }
 }

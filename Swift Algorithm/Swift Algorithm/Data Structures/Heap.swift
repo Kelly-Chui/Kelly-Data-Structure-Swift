@@ -10,7 +10,7 @@ import Foundation
 struct Heap<Element> {
     private var container: [Element] = []
     private var compareFunction: (Element, Element) -> Bool
-    var isEmtpy: Bool { container.isEmpty }
+    var isEmpty: Bool { container.isEmpty }
     var count: Int { container.count }
     
     init(compareFunction: @escaping (Element, Element) -> Bool) {
@@ -27,9 +27,8 @@ struct Heap<Element> {
         heapifyUp(container.count - 1)
     }
     mutating func pop() -> Element? {
-        guard !isEmtpy else { return nil }
+        guard !isEmpty else { return nil }
         let popElement = container[0]
-        // container[0] = container.removeLast()
         container.swapAt(0, container.count - 1)
         container.removeLast()
         heapifyDown(0)
@@ -69,5 +68,22 @@ struct Heap<Element> {
                 break
             }
         }
+    }
+}
+
+//MARK: - When 'Element' conforms 'Comparable' Protocols
+
+extension Heap where Element: Comparable {
+    
+    init() {
+        self.compareFunction = { (pre, post) -> Bool in
+            pre < post
+        }
+    }
+    
+    init(container: [Element]) {
+        self.init()
+        self.container = container
+        heapify()
     }
 }

@@ -7,22 +7,22 @@
 
 import Foundation
 
-var list = LinkedList<Int>()
-for i in 0..<10 {
-    list.push(i)
-}
-print(list)
+//// Type of element to be stored inside the heap
+//struct someElement {
+//    var value: Int
+//}
+//
+//let someArray = [someElement](repeating: someElement(value: Int.random(in: 1...100)), count: 10)
+//
+//// Converting [someElement] array to heap
+//var heap = Heap<someElement>(container: someArray, compareFunction: { (pre, post) -> Bool in
+//    pre.value < post.value
+//})
 
-list.push(99, at: 3)
+let integerArray = [Int](repeating: Int.random(in: 1...100), count: 10)
 
-for i in 0..<10 {
-    print(list[i])
-}
-print("*******")
-
-var a = list.pop(at: 3)
-print(a)
-print("*******")
-for i in 0..<10 {
-    print(list[i])
-}
+// Converting [Int] array to heap
+var heap = Heap<Int>()
+heap.push(10)
+print(heap.count)
+// 1
