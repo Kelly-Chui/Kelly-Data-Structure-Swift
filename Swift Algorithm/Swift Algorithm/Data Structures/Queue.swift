@@ -9,7 +9,6 @@ import Foundation
 
 struct Queue<Value> {
     private var list = LinkedList<Value>()
-    
     var isEmpty: Bool { list.isEmpty }
     var count: Int { list.count }
     
