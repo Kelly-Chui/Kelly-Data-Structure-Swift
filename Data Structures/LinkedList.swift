@@ -8,7 +8,7 @@
 import Foundation
 
 class LinkedListElement<Value> {
-    fileprivate var preElement: LinkedListElement?
+    fileprivate weak var preElement: LinkedListElement?
     fileprivate var postElement: LinkedListElement?
     var value: Value
     
@@ -28,27 +28,43 @@ struct LinkedList<Value> {
     var isEmpty: Bool { head == nil }
     var count: Int = 0
     
-    private func find(index: Int) -> LinkedListElement<Value>? {
-        var current = head
-        for _ in stride(from: 0, to: index, by: 1) {
-            current = current?.postElement
+    init() {}
+    init(_ values: [Value]) {
+        for value in values {
+            self.push(value)
         }
-        return current
-        // TODO: Reversed is also required
     }
-    
+
+    private func find(index targetIndex: Int) -> LinkedListElement<Value>? {
+        guard targetIndex >= 0 && targetIndex < count else { return nil }
+        if targetIndex < count / 2 {
+            var currentNode = head
+            var currentIndex = 0
+            while currentIndex < targetIndex {
+                currentNode = currentNode?.postElement
+                currentIndex += 1
+            }
+            return currentNode
+        } else {
+            var currentNode = tail
+            var currentIndex = count - 1
+            while currentIndex > targetIndex  {
+                currentNode = currentNode?.preElement
+                currentIndex -= 1
+            }
+            return currentNode
+        }
+    }
     // Method used to add an element at the end of a list
     mutating func push(_ value: Value) {
-        let addedElement = LinkedListElement(preElement: self.tail, value: value)
-        if count == 0 {
-            head = addedElement
-            tail = addedElement
+        let newNode = LinkedListElement(preElement: tail, value: value)
+        tail?.postElement = newNode
+        tail = newNode
+        if isEmpty {
+            head = newNode
         }
-        tail?.postElement = addedElement
-        tail = addedElement
         count += 1
     }
-    
     // Method used to add an element to the middle of a list
     mutating func push(_ value: Value, at index: Int) {
         guard index >= 0, index <= count else {
@@ -58,101 +74,62 @@ struct LinkedList<Value> {
             push(value)
             return
         }
-        let current = find(index: index)
-        let addedElement = LinkedListElement(preElement: current?.preElement, postElement: current, value: value)
-        if index == 0 {
-            head = addedElement
-        }
-        if count == 0 {
-            head = addedElement // If count == 0 is true, then index == 0 is also true, so this line is not actually necessary.
-            tail = addedElement
-        }
-        current?.preElement?.postElement = addedElement
-        current?.preElement = addedElement
+        let nextNode = find(index: index)
+        let previousNode = nextNode?.preElement
+        let newNode = LinkedListElement(preElement: previousNode, postElement: nextNode, value: value)
+        previousNode?.postElement = newNode
+        nextNode?.preElement = newNode
+        if index == 0 { head = newNode }
         count += 1
     }
-    
     @discardableResult
     mutating func popFirst() -> Value? {
-        guard head != nil else {
-            return nil
-        }
-        var headElement = head
-        let headValue = headElement?.value
+        guard count > 0 else { return nil }
+        let value = head?.value
         head = head?.postElement
         head?.preElement = nil
         count -= 1
-        headElement = nil
-        return headValue
+        if count == 0 {
+            tail = nil
+        }
+        return value
     }
-    
     @discardableResult
     mutating func popLast() -> Value? {
-        guard tail != nil else {
-            return nil
-        }
-        var tailElement = tail
-        let tailValue = tailElement?.value
+        guard count > 0 else { return nil }
+        let value = tail?.value
         tail = tail?.preElement
         tail?.postElement = nil
         count -= 1
-        tailElement = nil
-        return tailValue
+        if count == 0 {
+            head = nil
+        }
+        return value
     }
-    
     @discardableResult
     mutating func pop(at index: Int) -> Value? {
         guard index >= 0, index < count else {
             fatalError("Index out of bounds")
         }
-        
         if index == 0 {
             return popFirst()
         }
         if index == count - 1 {
             return popLast()
         }
-        var current = head
-        current = find(index: index)
-        let value = current?.value
-        
-        let preElement = current?.preElement
-        let postElement = current?.postElement
-        preElement?.postElement = postElement
-        postElement?.preElement = preElement
-        
-        current = nil
+        let targetNode = find(index: index)
+        let value = targetNode?.value
+        let previousNode = targetNode?.preElement
+        let nextNode = targetNode?.postElement
+        previousNode?.postElement = nextNode
+        nextNode?.preElement = previousNode
         count -= 1
         return value
     }
-    
-    // Accessing values using subscripts
     subscript(index: Int) -> Value? {
-        guard index >= 0, index < count else {
-            fatalError("Index out of bounds")
+        guard index >= 0 && index < count else {
+            return nil
         }
-        
-        var current = head
-        current = find(index: index)
-        return current?.value
-    }
-}
-
-//MARK: - Conform Sequence Protocol
-
-extension LinkedList: Sequence {
-    struct LinkedListIterator: IteratorProtocol {
-        var current: LinkedListElement<Value>?
-
-        mutating func next() -> Value? {
-            defer {
-                current = current?.postElement
-            }
-            return current?.value
-        }
-    }
-
-    func makeIterator() -> LinkedListIterator {
-        return LinkedListIterator(current: head)
+        return find(index: index)?.value
     }
 }
